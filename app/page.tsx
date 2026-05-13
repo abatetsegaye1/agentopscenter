@@ -131,7 +131,12 @@ export default async function Page(): Promise<JSX.Element> {
       withFallback("marketing tasks", getMarketingTasks(), []),
       withFallback("marketing opportunities", getMarketingOpportunities(), []),
       withFallback("marketing agent runs", getMarketingAgentRuns(), []),
-      getMarketingLiveTrends(),
+     withFallback("marketing live trends", getMarketingLiveTrends(), {
+  query: "",
+  signals: [],
+  insights: [],
+  fetchedAt: ""
+}),
       withFallback("marketing approvals", getMarketingApprovals(), {
         pendingCampaigns: [],
         pendingContent: []
