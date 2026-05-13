@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CommandRecord } from "@/lib/api";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:4000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://opsapi.digitalrealestate.today/api";
 
 function summarizeResult(command: CommandRecord): string {
   if (command.responseText) return command.responseText;

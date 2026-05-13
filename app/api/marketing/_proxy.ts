@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const DEFAULT_API_BASE = "http://localhost:4000/api";
+const DEFAULT_API_BASE = "https://opsapi.digitalrealestate.today/api";
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? DEFAULT_API_BASE).replace(/\/+$/, "");
 
 function toBackendUrl(path: string): string {

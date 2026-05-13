@@ -4,8 +4,8 @@ import { AgentEvent } from "@agentops/contracts";
 import { useEffect, useMemo, useState } from "react";
 import { io } from "socket.io-client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:4000/api";
-const WS_BASE = process.env.NEXT_PUBLIC_WS_BASE ?? "http://localhost:4000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://opsapi.digitalrealestate.today/api";
+const WS_BASE = process.env.NEXT_PUBLIC_WS_BASE ?? "https://opsapi.digitalrealestate.today";
 
 export function LiveFeed({ initialEvents }: { initialEvents: AgentEvent[] }): JSX.Element {
   const [events, setEvents] = useState<AgentEvent[]>(initialEvents);

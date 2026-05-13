@@ -27,7 +27,7 @@ import {
   WorkflowSummary
 } from "@agentops/contracts";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:4000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://opsapi.digitalrealestate.today/api";
 
 export interface ParsedCommand {
   kind: "help" | "marketing" | "ops";
