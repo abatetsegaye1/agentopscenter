@@ -3,11 +3,11 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm install
+        - npm ci
         - npm run build --prefix packages/contracts
     build:
       commands:
-        - env | grep -e NEXT_PUBLIC_ >> .env.production
+        - printenv | grep NEXT_PUBLIC_ >> .env.production || true
         - npm run build
   artifacts:
     baseDirectory: .next

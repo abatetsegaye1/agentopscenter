@@ -45,6 +45,15 @@ import {
   getWorkflowSummaries
 } from "@/lib/api";
 
+async function withFallback<T>(label: string, promise: Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await promise;
+  } catch (error) {
+    console.warn(`[page] ${label} fallback:`, error instanceof Error ? error.message : error);
+    return fallback;
+  }
+}
+
 export default async function Page(): Promise<JSX.Element> {
   const [
     overview,
@@ -72,29 +81,74 @@ export default async function Page(): Promise<JSX.Element> {
     lifecycleEvents
   ] =
     await Promise.all([
-      getOverview(),
-      getWorkflowSummaries(),
-      getIncidents(),
-      getEvents(),
-      getOpenClawStatus(),
-      getOpenClawEvents(),
-      getOpenClawConnectorStatus(),
-      getOpenClawProcessStatus(),
-      getOpsTasks(),
-      getPairingRequests(),
-      getOpsAudit(),
-      getCommands(),
-      getLearningExperiences(),
-      getLearningLessons(),
-      getMarketingOverview(),
-      getMarketingTasks(),
-      getMarketingOpportunities(),
-      getMarketingAgentRuns(),
+      withFallback("overview", getOverview(), {
+        activeRuns: 0,
+        runsLast24h: 0,
+        successRatePct: 0,
+        avgLatencyMs: 0,
+        totalCostUsd24h: 0,
+        criticalIncidents24h: 0
+      }),
+      withFallback("workflows", getWorkflowSummaries(), []),
+      withFallback("incidents", getIncidents(), []),
+      withFallback("events", getEvents(), []),
+      withFallback("openclaw status", getOpenClawStatus(), {
+        connected: false,
+        url: "",
+        version: "",
+        lastHeartbeatAt: "",
+        channels: [],
+        nodes: [],
+        queueDepth: 0
+      }),
+      withFallback("openclaw events", getOpenClawEvents(), []),
+      withFallback("openclaw connector", getOpenClawConnectorStatus(), {
+        enabled: false,
+        connected: false,
+        url: "",
+        reconnectAttempts: 0
+      }),
+      withFallback("openclaw processes", getOpenClawProcessStatus(), []),
+      withFallback("ops tasks", getOpsTasks(), []),
+      withFallback("pairing requests", getPairingRequests(), []),
+      withFallback("ops audit", getOpsAudit(), []),
+      withFallback("commands", getCommands(), []),
+      withFallback("learning experiences", getLearningExperiences(), []),
+      withFallback("learning lessons", getLearningLessons(), []),
+      withFallback("marketing overview", getMarketingOverview(), {
+        totalTasks: 0,
+        queuedTasks: 0,
+        runningTasks: 0,
+        awaitingProviderTasks: 0,
+        retryingTasks: 0,
+        stalledTasks: 0,
+        completedTasks: 0,
+        failedTasks: 0,
+        completionRatePct: 0
+      }),
+      withFallback("marketing tasks", getMarketingTasks(), []),
+      withFallback("marketing opportunities", getMarketingOpportunities(), []),
+      withFallback("marketing agent runs", getMarketingAgentRuns(), []),
       getMarketingLiveTrends(),
-      getMarketingApprovals(),
-      getMarketingQueueHealth(),
-      getMarketingIntegrationReadiness(),
-      getMarketingLifecycleEvents()
+      withFallback("marketing approvals", getMarketingApprovals(), {
+        pendingCampaigns: [],
+        pendingContent: []
+      }),
+      withFallback("queue health", getMarketingQueueHealth(), {
+        enabled: false,
+        queueName: "",
+        workerConcurrency: 0,
+        counts: {
+          waiting: 0,
+          active: 0,
+          delayed: 0,
+          paused: 0,
+          completed: 0,
+          failed: 0
+        }
+      }),
+      withFallback("integration readiness", getMarketingIntegrationReadiness(), []),
+      withFallback("lifecycle events", getMarketingLifecycleEvents(), [])
     ]);
 
   return (

@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@agentops/contracts"],
-  outputFileTracing: false
+  transpilePackages: ["@agentops/contracts"]
 };
 
 export default nextConfig;
