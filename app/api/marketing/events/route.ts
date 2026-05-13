@@ -1,5 +1,7 @@
 import { proxyToBackend } from "../_proxy";
 
+export const fetchCache = "force-no-store";
+
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const limit = url.searchParams.get("limit");

@@ -1,5 +1,7 @@
 import { proxyToBackend } from "../../../_proxy";
 
+export const fetchCache = "force-no-store";
+
 interface RouteContext {
   params: {
     id: string;

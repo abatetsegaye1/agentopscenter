@@ -6,6 +6,8 @@ import {
   getBrandCompliance
 } from "@/lib/api";
 
+export const fetchCache = "force-no-store";
+
 async function withFallback<T>(label: string, promise: Promise<T>, fallback: T): Promise<T> {
   try {
     return await promise;

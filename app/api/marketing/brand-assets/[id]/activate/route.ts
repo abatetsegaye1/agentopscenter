@@ -1,5 +1,7 @@
 import { proxyToBackend } from "../../../_proxy";
 
+export const fetchCache = "force-no-store";
+
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }

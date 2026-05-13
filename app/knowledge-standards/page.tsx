@@ -1,6 +1,8 @@
 import { KnowledgeStandardsAdmin } from "@/components/knowledge-standards-admin";
 import { getActiveKnowledgeStandard, getKnowledgeCompliance, getKnowledgeStandards } from "@/lib/api";
 
+export const fetchCache = "force-no-store";
+
 const fallbackStandard = {
   id: 0,
   standardKey: "digital_real_estate_canonical_definition",
