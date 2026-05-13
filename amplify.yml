@@ -4,6 +4,7 @@ frontend:
     preBuild:
       commands:
         - npm install
+        - npm run build --prefix packages/contracts
     build:
       commands:
         - env | grep -e NEXT_PUBLIC_ >> .env.production
