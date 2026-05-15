@@ -4,6 +4,25 @@ import { storeSession } from "@/lib/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
+function parseLoginError(raw: string, status: number): string {
+  if (!raw) return `Login failed (${status})`;
+
+  try {
+    const parsed = JSON.parse(raw) as { message?: string | string[]; error?: string };
+    if (Array.isArray(parsed.message)) return parsed.message.join("; ");
+    if (typeof parsed.message === "string" && parsed.message.trim().length > 0) {
+      return parsed.message;
+    }
+    if (typeof parsed.error === "string" && parsed.error.trim().length > 0) {
+      return parsed.error;
+    }
+  } catch {
+    // Fall through to plain-text response handling.
+  }
+
+  return raw.slice(0, 260);
+}
+
 export function LoginForm(): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -26,7 +45,7 @@ export function LoginForm(): JSX.Element {
       const raw = await response.text();
 
       if (!response.ok) {
-        setError(raw || `Login failed (${response.status})`);
+        setError(parseLoginError(raw, response.status));
         return;
       }
 
