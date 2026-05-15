@@ -16,6 +16,7 @@ interface FinalOutputDetails {
 }
 
 type OutputState = "draft" | "error" | "pending" | "empty";
+type ContentAgentSelection = "openclaw" | "custom";
 
 const openclawTaskTypes = [
   "GENERATE_ARTICLE",
@@ -289,6 +290,19 @@ function getRequestedOpenclaw(task: MarketingTaskRecord): boolean | undefined {
   return typeof payloadInput.useOpenclaw === "boolean" ? payloadInput.useOpenclaw : undefined;
 }
 
+function getSelectedContentAgent(task: MarketingTaskRecord): string {
+  const payload = task.payload as Record<string, unknown>;
+  const payloadInput =
+    payload.input && typeof payload.input === "object"
+      ? (payload.input as Record<string, unknown>)
+      : {};
+  const selectedAgent = payloadInput.selectedContentAgent;
+
+  if (selectedAgent === "openclaw") return "OpenClaw";
+  if (selectedAgent === "custom") return "Our custom agent";
+  return getRequestedOpenclaw(task) === true ? "OpenClaw" : "Our custom agent";
+}
+
 function summarizeTaskOutput(task: MarketingTaskRecord): string {
   if (task.error) return toSingleLine(`Error: ${task.error}`);
   if (["running", "queued", "awaiting-provider", "retrying"].includes(task.status)) {
@@ -342,7 +356,7 @@ export function MarketingTasks({ tasks }: MarketingTasksProps): JSX.Element {
   const [createBy, setCreateBy] = useState("dashboard_operator");
   const [createPersona, setCreatePersona] = useState("founder-investor");
   const [createPillar, setCreatePillar] = useState("education");
-  const [createUseOpenclaw, setCreateUseOpenclaw] = useState(true);
+  const [createContentAgent, setCreateContentAgent] = useState<ContentAgentSelection>("openclaw");
   const [createBusy, setCreateBusy] = useState(false);
   const [busyAction, setBusyAction] = useState<string>();
   const [actionError, setActionError] = useState<string>();
@@ -438,13 +452,15 @@ export function MarketingTasks({ tasks }: MarketingTasksProps): JSX.Element {
           taskType: createTaskType,
           createdBy: createBy.trim() || "dashboard_operator",
           platforms,
-          useOpenclaw: createUseOpenclaw,
+          useOpenclaw: createContentAgent === "openclaw",
           payload: {
             objective: createObjective.trim(),
             persona: createPersona.trim() || undefined,
             pillar: createPillar.trim() || undefined,
             input: {
-              brandName: "DigitalRealEstate.Today"
+              brandName: "DigitalRealEstate.Today",
+              selectedContentAgent: createContentAgent,
+              useOpenclaw: createContentAgent === "openclaw"
             }
           }
         })
@@ -456,8 +472,9 @@ export function MarketingTasks({ tasks }: MarketingTasksProps): JSX.Element {
       }
 
       const json = (await response.json()) as { task?: { id?: string }; queued?: boolean };
+      const selectedAgentLabel = createContentAgent === "openclaw" ? "OpenClaw" : "our custom agent";
       setActionNotice(
-        `Created ${createTaskType} ${json.task?.id ? `as ${json.task.id}` : "task"}${createUseOpenclaw ? " with OpenClaw requested" : ""}.`
+        `Created ${createTaskType} ${json.task?.id ? `as ${json.task.id}` : "task"} with ${selectedAgentLabel}.`
       );
       await refreshTasks();
       router.refresh();
@@ -557,16 +574,18 @@ export function MarketingTasks({ tasks }: MarketingTasksProps): JSX.Element {
           <input value={createPillar} onChange={(event) => setCreatePillar(event.target.value)} />
         </label>
         <label>
+          Content Agent
+          <select
+            value={createContentAgent}
+            onChange={(event) => setCreateContentAgent(event.target.value as ContentAgentSelection)}
+          >
+            <option value="openclaw">OpenClaw</option>
+            <option value="custom">Our custom agent</option>
+          </select>
+        </label>
+        <label>
           Objective
           <textarea value={createObjective} onChange={(event) => setCreateObjective(event.target.value)} rows={3} required />
-        </label>
-        <label className="checkbox-row">
-          <input
-            type="checkbox"
-            checked={createUseOpenclaw}
-            onChange={(event) => setCreateUseOpenclaw(event.target.checked)}
-          />
-          <span>Use OpenClaw for this task</span>
         </label>
         <button type="submit" disabled={createBusy}>
           {createBusy ? "Creating..." : "Create Marketing Task"}
@@ -579,7 +598,7 @@ export function MarketingTasks({ tasks }: MarketingTasksProps): JSX.Element {
           <tr>
             <th>Task</th>
             <th>Status</th>
-            <th>Executor</th>
+            <th>Content Agent</th>
             <th>Platforms</th>
             <th>Output</th>
             <th>Updated</th>
@@ -597,7 +616,7 @@ export function MarketingTasks({ tasks }: MarketingTasksProps): JSX.Element {
               <tr key={task.id}>
                 <td>{task.taskType}</td>
                 <td>{task.status}</td>
-                <td>{getRequestedOpenclaw(task) === true ? "OpenClaw" : "Local"}</td>
+                <td>{getSelectedContentAgent(task)}</td>
                 <td>{task.platforms.join(",") || "-"}</td>
                 <td className="marketing-output" title={output}>
                   {output}

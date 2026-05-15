@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import { AuthShell } from "@/components/auth-shell";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
 
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }): JSX.Element {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthShell>{children}</AuthShell>
+      </body>
     </html>
   );
 }
