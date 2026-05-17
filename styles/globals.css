@@ -212,6 +212,38 @@ textarea {
   font-weight: 700;
 }
 
+.marketing-overview-card {
+  padding: 12px;
+}
+
+.marketing-overview-card .section-title h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.marketing-overview-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.metric-card-compact {
+  border-radius: 10px;
+  padding: 9px 10px;
+  box-shadow: none;
+}
+
+.metric-card-compact .metric-label {
+  font-size: 11px;
+}
+
+.metric-card-compact .metric-value {
+  margin-top: 3px;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
 .split {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
@@ -238,6 +270,23 @@ textarea {
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.marketing-tasks-heading {
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.marketing-tasks-heading h2,
+.marketing-tasks-heading .hint,
+.marketing-create-form h3 {
+  margin: 0;
+}
+
+.marketing-create-form {
+  margin-top: 2px;
 }
 
 .feed-list {

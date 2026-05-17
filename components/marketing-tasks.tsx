@@ -539,13 +539,13 @@ export function MarketingTasks({ tasks }: MarketingTasksProps): JSX.Element {
 
   return (
     <section className="card">
-      <div className="section-title">
+      <div className="section-title marketing-tasks-heading">
         <h2>Marketing Tasks</h2>
         <span className="hint">
           {hasActiveTasks ? "Auto-refreshing every 3s while tasks are running" : "Recent queue executions"}
         </span>
       </div>
-      <form className="control-form" onSubmit={(event) => void createMarketingTask(event)}>
+      <form className="control-form marketing-create-form" onSubmit={(event) => void createMarketingTask(event)}>
         <h3>Create Marketing Task</h3>
         <label>
           Task Type

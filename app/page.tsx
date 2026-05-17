@@ -198,10 +198,7 @@ export default async function Page(): Promise<JSX.Element> {
 
       <LearningPanel experiences={learningExperiences} lessons={learningLessons} />
 
-      <section className="split">
-        <MarketingOverviewCard overview={marketingOverview} />
-        <MarketingTasks tasks={marketingTasks} />
-      </section>
+      <MarketingOverviewCard overview={marketingOverview} />
 
       <section className="split">
         <IntegrationReadinessPanel snapshots={integrationReadiness} />
@@ -219,6 +216,8 @@ export default async function Page(): Promise<JSX.Element> {
         <ApprovalsConsole initialSnapshot={approvals} />
         <QueueHealthCard health={queueHealth} />
       </section>
+
+      <MarketingTasks tasks={marketingTasks} />
 
       <LiveFeed initialEvents={events} />
     </main>

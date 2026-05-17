@@ -1,6 +1,7 @@
 "use client";
 
 import { KnowledgeComplianceSummary, KnowledgeStandardRecord } from "@agentops/contracts";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 interface KnowledgeStandardsAdminProps {
@@ -14,9 +15,12 @@ export function KnowledgeStandardsAdmin({
   standards,
   recentCompliance
 }: KnowledgeStandardsAdminProps): JSX.Element {
+  const router = useRouter();
   const [busyAction, setBusyAction] = useState<string>();
   const [notice, setNotice] = useState<string>();
   const [error, setError] = useState<string>();
+  const [uploadFileName, setUploadFileName] = useState<string>();
+  const [uploadText, setUploadText] = useState<string>("");
 
   const history = useMemo(
     () => standards.filter((item) => item.standardKey === activeStandard.standardKey),
@@ -31,13 +35,50 @@ export function KnowledgeStandardsAdmin({
       const res = await request();
       const raw = await res.text();
       if (!res.ok) {
-        setError(raw || `Request failed (${res.status})`);
+        setError(parseApiMessage(raw) || `Request failed (${res.status})`);
         return;
       }
       setNotice(successText);
+      router.refresh();
     } finally {
       setBusyAction(undefined);
     }
+  }
+
+  async function handleFileChange(file?: File): Promise<void> {
+    setNotice(undefined);
+    setError(undefined);
+    if (!file) {
+      setUploadFileName(undefined);
+      setUploadText("");
+      return;
+    }
+
+    const raw = await file.text();
+    const extractedText = extractDoctrineText(raw);
+    setUploadFileName(file.name);
+    setUploadText(extractedText);
+  }
+
+  async function uploadStandard(): Promise<void> {
+    await runAction(
+      "upload",
+      () =>
+        fetch("/api/marketing/knowledge-standards", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            actor: "dashboard_admin",
+            standardKey: activeStandard.standardKey,
+            authorityName: activeStandard.authorityName,
+            title: activeStandard.title,
+            doctrineText: uploadText,
+            activate: true,
+            sourceFileName: uploadFileName
+          })
+        }),
+      "Uploaded and activated the knowledge standard. New agent outputs will use it."
+    );
   }
 
   return (
@@ -57,6 +98,42 @@ export function KnowledgeStandardsAdmin({
           </div>
           <p>{activeStandard.doctrineText}</p>
         </div>
+
+        <form
+          className="control-form knowledge-upload-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void uploadStandard();
+          }}
+        >
+          <h3>Upload Knowledge Standard</h3>
+          <label>
+            Standard file
+            <input
+              type="file"
+              accept=".txt,.md,.json,text/plain,text/markdown,application/json"
+              onChange={(event) => void handleFileChange(event.target.files?.[0])}
+            />
+          </label>
+          <label>
+            Doctrine content
+            <textarea
+              rows={7}
+              value={uploadText}
+              onChange={(event) => setUploadText(event.target.value)}
+              placeholder="Upload or paste the canonical standard text the agents must follow."
+            />
+          </label>
+          {uploadText.trim() ? (
+            <p className="hint">
+              {uploadFileName ? `${uploadFileName} | ` : ""}
+              {uploadText.trim().length.toLocaleString()} characters. Uploading creates a new active version.
+            </p>
+          ) : null}
+          <button disabled={Boolean(busyAction) || !uploadText.trim()} type="submit">
+            {busyAction === "upload" ? "Uploading..." : "Upload and Activate"}
+          </button>
+        </form>
 
         <div>
           <strong>Version History</strong>
@@ -150,4 +227,34 @@ export function KnowledgeStandardsAdmin({
       </div>
     </section>
   );
+}
+
+function extractDoctrineText(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (parsed && typeof parsed === "object") {
+      const record = parsed as Record<string, unknown>;
+      const candidate = record.doctrineText ?? record.content ?? record.text;
+      if (typeof candidate === "string" && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+  } catch {
+    // Plain text and markdown uploads are expected here.
+  }
+
+  return raw.trim();
+}
+
+function parseApiMessage(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw) as { message?: unknown; error?: unknown };
+    if (typeof parsed.message === "string") return parsed.message;
+    if (Array.isArray(parsed.message)) return parsed.message.join(", ");
+    if (typeof parsed.error === "string") return parsed.error;
+  } catch {
+    return raw;
+  }
+
+  return raw;
 }
