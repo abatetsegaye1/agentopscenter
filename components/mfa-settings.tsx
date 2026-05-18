@@ -16,6 +16,7 @@ interface MfaSetupPayload {
 export function MfaSettings({ session, onClose }: MfaSettingsProps): JSX.Element {
   const [setup, setSetup] = useState<MfaSetupPayload>();
   const [code, setCode] = useState("");
+  const [disablePassword, setDisablePassword] = useState("");
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
@@ -75,6 +76,37 @@ export function MfaSettings({ session, onClose }: MfaSettingsProps): JSX.Element
     }
   }
 
+  async function disableMfa(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    setBusy(true);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      const response = await fetch("/api/auth/mfa/disable", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${session.accessToken}`,
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({ currentPassword: disablePassword })
+      });
+      const raw = await response.text();
+      if (!response.ok) {
+        setError(parseApiMessage(raw) || `MFA disable failed (${response.status})`);
+        return;
+      }
+      setSetup(undefined);
+      setCode("");
+      setRecoveryCodes([]);
+      setDisablePassword("");
+      setNotice("MFA is disabled for this account.");
+    } catch (disableError) {
+      setError(disableError instanceof Error ? disableError.message : "MFA disable failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="mfa-panel">
       <div className="section-title">
@@ -128,6 +160,23 @@ export function MfaSettings({ session, onClose }: MfaSettingsProps): JSX.Element
           </ul>
         </div>
       ) : null}
+
+      <form className="control-form" onSubmit={disableMfa}>
+        <h3>Disable MFA</h3>
+        <label>
+          Current password
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={disablePassword}
+            onChange={(event) => setDisablePassword(event.target.value)}
+            required
+          />
+        </label>
+        <button type="submit" disabled={busy || !disablePassword}>
+          {busy ? "Disabling..." : "Disable MFA"}
+        </button>
+      </form>
     </div>
   );
 }
