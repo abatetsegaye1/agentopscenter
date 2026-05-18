@@ -41,6 +41,9 @@ export default async function KnowledgeStandardsPage(): Promise<JSX.Element> {
   return (
     <main className="page">
       <header className="hero">
+        <a className="back-button" href="/">
+          &larr; Back
+        </a>
         <h1>Knowledge Standards Admin</h1>
         <p>Govern canonical doctrine, audit compliance, and control standard activation state.</p>
       </header>
