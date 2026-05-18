@@ -28,6 +28,9 @@ export default async function BrandAssetsPage(): Promise<JSX.Element> {
   return (
     <main className="page">
       <header className="hero">
+        <a className="back-button" href="/">
+          &larr; Back
+        </a>
         <h1>Brand Asset Governance</h1>
         <p>
           Govern canonical brand assets, enforce palette rules, and audit brand compliance before
