@@ -55,6 +55,52 @@ a {
   backdrop-filter: blur(10px);
 }
 
+.mfa-panel {
+  width: min(100% - 28px, 720px);
+  margin: 12px auto 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.mfa-panel button,
+.secondary-button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+.mfa-panel button:hover,
+.secondary-button:hover {
+  border-color: var(--cta);
+  background: var(--cta);
+}
+
+.recovery-codes {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--field);
+  padding: 10px;
+}
+
+.recovery-codes ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  columns: 2;
+  color: var(--surface-strong);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 13px;
+}
+
 .session-bar div {
   display: flex;
   align-items: center;

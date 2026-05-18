@@ -12,15 +12,15 @@
       "static/chunks/fd9d1056-d76e57cce6379a76.js",
       "static/chunks/23-85c0bd7c0ba9f55a.js",
       "static/chunks/main-app-d84406d9f0924e9d.js",
-      "static/css/21eafbeae4dcceef.css",
-      "static/chunks/app/layout-8ae0e9c9847a869a.js"
+      "static/css/ddd519ea61441e5f.css",
+      "static/chunks/app/layout-8376892d7e90a0a4.js"
     ],
     "/login/page": [
       "static/chunks/webpack-35802d3bbc99b41b.js",
       "static/chunks/fd9d1056-d76e57cce6379a76.js",
       "static/chunks/23-85c0bd7c0ba9f55a.js",
       "static/chunks/main-app-d84406d9f0924e9d.js",
-      "static/chunks/app/login/page-3839bf7f889d6797.js"
+      "static/chunks/app/login/page-2b3363c23e23eba8.js"
     ],
     "/admin/brand-assets/page": [
       "static/chunks/webpack-35802d3bbc99b41b.js",

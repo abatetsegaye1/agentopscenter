@@ -4,30 +4,13 @@ import { storeSession } from "@/lib/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
-function parseLoginError(raw: string, status: number): string {
-  if (!raw) return `Login failed (${status})`;
-
-  try {
-    const parsed = JSON.parse(raw) as { message?: string | string[]; error?: string };
-    if (Array.isArray(parsed.message)) return parsed.message.join("; ");
-    if (typeof parsed.message === "string" && parsed.message.trim().length > 0) {
-      return parsed.message;
-    }
-    if (typeof parsed.error === "string" && parsed.error.trim().length > 0) {
-      return parsed.error;
-    }
-  } catch {
-    // Fall through to plain-text response handling.
-  }
-
-  return raw.slice(0, 260);
-}
-
 export function LoginForm(): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("admin@digitalrealestate.today");
   const [password, setPassword] = useState("");
+  const [mfaToken, setMfaToken] = useState<string>();
+  const [mfaCode, setMfaCode] = useState("");
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
 
@@ -45,7 +28,50 @@ export function LoginForm(): JSX.Element {
       const raw = await response.text();
 
       if (!response.ok) {
-        setError(parseLoginError(raw, response.status));
+        setError(parseApiMessage(raw) || `Login failed (${response.status})`);
+        return;
+      }
+
+      const payload = JSON.parse(raw) as {
+        accessToken: string;
+        role: string;
+        email: string;
+        expiresAt?: string;
+        mfaRequired?: boolean;
+        mfaToken?: string;
+      };
+
+      if (payload.mfaRequired && payload.mfaToken) {
+        setMfaToken(payload.mfaToken);
+        setMfaCode("");
+        return;
+      }
+
+      storeSession(payload);
+      router.replace(searchParams.get("next") || "/");
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function submitMfa(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    if (!mfaToken) return;
+    setError(undefined);
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/mfa/verify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ mfaToken, code: mfaCode })
+      });
+      const raw = await response.text();
+
+      if (!response.ok) {
+        setError(parseApiMessage(raw) || `MFA verification failed (${response.status})`);
         return;
       }
 
@@ -53,14 +79,56 @@ export function LoginForm(): JSX.Element {
         accessToken: string;
         role: string;
         email: string;
+        expiresAt?: string;
       };
       storeSession(session);
       router.replace(searchParams.get("next") || "/");
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Login failed");
+      setError(loginError instanceof Error ? loginError.message : "MFA verification failed");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (mfaToken) {
+    return (
+      <form className="login-panel" onSubmit={submitMfa}>
+        <div>
+          <h1>Verify MFA</h1>
+          <p>Enter the 6-digit code from your authenticator app or a recovery code.</p>
+        </div>
+
+        {error ? <p className="form-error">{error}</p> : null}
+
+        <label>
+          MFA code
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            value={mfaCode}
+            onChange={(event) => setMfaCode(event.target.value)}
+            required
+          />
+        </label>
+
+        <button type="submit" disabled={submitting}>
+          {submitting ? "Verifying..." : "Verify"}
+        </button>
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={submitting}
+          onClick={() => {
+            setMfaToken(undefined);
+            setMfaCode("");
+            setError(undefined);
+          }}
+        >
+          Back to Login
+        </button>
+      </form>
+    );
   }
 
   return (
@@ -99,4 +167,17 @@ export function LoginForm(): JSX.Element {
       </button>
     </form>
   );
+}
+
+function parseApiMessage(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw) as { message?: unknown; error?: unknown };
+    if (typeof parsed.message === "string") return parsed.message;
+    if (Array.isArray(parsed.message)) return parsed.message.join(", ");
+    if (typeof parsed.error === "string") return parsed.error;
+  } catch {
+    return raw;
+  }
+
+  return raw;
 }
